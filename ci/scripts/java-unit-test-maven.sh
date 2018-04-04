@@ -4,7 +4,7 @@ set -e -x
 
 ls -ltr
 
-cd web-ui
+cd code-repo
 
 ls -ltr
 
