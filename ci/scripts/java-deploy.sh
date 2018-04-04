@@ -1,13 +1,7 @@
 #!/bin/bash
-
 set -e -x
-
 ls -ltr
-
-cd web-ui
-
+cd SpringBootSample
 ls -ltr
-
-mvn install
-
+mvn clean test
 echo "Unit Tests Complete"

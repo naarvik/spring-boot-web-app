@@ -1,13 +1,7 @@
 #!/bin/bash
-
 set -e -x
-
 ls -ltr
-
-cd code-repo
-
+cd SpringBootSample
 ls -ltr
-
-mvn test
-
+mvn clean test
 echo "Unit Tests Complete"
