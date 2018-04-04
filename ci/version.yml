@@ -7,16 +7,16 @@ image_resource:
     tag: 3.5.3-alpine
 
 inputs:
-# - name: SpringBootSample
-- name: code-repo
+ - name: SpringBootSample
+# - name: code-repo
 
 #outputs:
 #- name: tests
 
-# run:
-#   path: sh
-#   args: ['./web-ui/ci/scripts/version.sh']
-
 run:
-  dir: code-repo
-  path: ./ci/scripts/version.sh
+  path: sh
+  args: ['./SpringBootSample/ci/scripts/version.sh']
+
+# run:
+#   dir: code-repo
+#   path: ./ci/scripts/version.sh
