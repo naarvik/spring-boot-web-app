@@ -1,0 +1,184 @@
+resources:
+- name: SpringBootSample
+  type: git
+  source:
+    uri: https://github.com/naarvik/spring-boot-web-app.git
+    branch: master
+
+#- name: backend
+#  type: git
+#  source:
+#    uri: https://github.com/LableOrg/java-maven-junit-helloworld.git
+#    branch: master
+
+- name: slack
+  type: slack-notification
+  source:
+    url: https://hooks.slack.com/services/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
+
+resource_types:
+- name: slack-notification
+  type: docker-image
+  source:
+    repository: cfcommunity/slack-notification-resource
+
+jobs:
+- name: Version
+  max_in_flight: 1
+  plan:
+  #- get: backend
+  - get: SpringBootSample
+    trigger: true
+  - task: version
+    file: SpringBootSample/ci/version.yml
+    input_mapping: {code-repo: SpringBootSample}
+    on_success:
+      put: slack
+      params:
+        channel: "#test-feeds"
+        username: concourse
+        icon_url: https://avatars2.githubusercontent.com/u/36465201?v=4&s=200
+        text: "$BUILD_PIPELINE_NAME/$BUILD_JOB_NAME Passed ! <$ATC_EXTERNAL_URL:8080/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|  Click for details.>"
+
+- name: Unit Test
+  max_in_flight: 1
+  plan:
+#  - get: backend
+  - get: SpringBootSample
+    trigger: true
+    passed: [Version]
+  - task: unit-test
+    file: SpringBootSample/ci/java-unit-test-maven.yml
+    input_mapping: {code-repo: SpringBootSample}
+    on_success:
+      put: slack
+      params:
+        channel: "#test-feeds"
+        username: concourse
+        icon_url: https://avatars2.githubusercontent.com/u/36465201?v=4&s=200
+        text: "$BUILD_PIPELINE_NAME/$BUILD_JOB_NAME Passed ! <$ATC_EXTERNAL_URL:8080/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|  Click for details.>"
+
+# - name: Code Quality
+#   max_in_flight: 1
+#   plan:
+#   #- get: backend
+#   - get: SpringBootSample
+#     trigger: true
+#     passed: [Unit Test]
+#   - task: sonar-scan
+#     file: SpringBootSample/ci/code-quality.yml
+#     input_mapping: {code-repo: SpringBootSample}
+#     on_success:
+#       put: slack
+#       params:
+#         channel: "#test-feeds"
+#         username: concourse
+#         icon_url: https://avatars2.githubusercontent.com/u/36465201?v=4&s=200
+#         text: "$BUILD_PIPELINE_NAME/$BUILD_JOB_NAME Passed ! <$ATC_EXTERNAL_URL:8080/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|  Click for details.>"
+#
+# - name: Security Scan
+#   max_in_flight: 1
+#   plan:
+#   #- get: backend
+#   - get: SpringBootSample
+#     trigger: true
+#     passed: [Unit Test]
+#   - task: security-scan
+#     file: SpringBootSample/ci/security-scan.yml
+#     input_mapping: {code-repo: SpringBootSample}
+#     on_success:
+#       put: slack
+#       params:
+#         channel: "#test-feeds"
+#         username: concourse
+#         icon_url: https://avatars2.githubusercontent.com/u/36465201?v=4&s=200
+#         text: "$BUILD_PIPELINE_NAME/$BUILD_JOB_NAME Passed ! <$ATC_EXTERNAL_URL:8080/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|  Click for details.>"
+#
+# - name: Tag Stories
+#   max_in_flight: 1
+#   plan:
+#   #- get: backend
+#   - get: SpringBootSample
+#     trigger: true
+#     passed: [Unit Test]
+#   - task: tag-stories
+#     file: SpringBootSample/ci/tag-stories.yml
+#     input_mapping: {code-repo: SpringBootSample}
+#     on_success:
+#       put: slack
+#       params:
+#         channel: "#test-feeds"
+#         username: concourse
+#         icon_url: https://avatars2.githubusercontent.com/u/36465201?v=4&s=200
+#         text: "$BUILD_PIPELINE_NAME/$BUILD_JOB_NAME Passed ! <$ATC_EXTERNAL_URL:8080/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|  Click for details.>"
+#
+#
+# - name: Build Artifact
+#   max_in_flight: 1
+#   plan:
+#   #- get: backend
+#   - get: SpringBootSample
+#     trigger: true
+#     passed: [Code Quality,Security Scan,Tag Stories]
+#   - task: build
+#     file: SpringBootSample/ci/java-build-artifact.yml
+#     input_mapping: {code-repo: SpringBootSample}
+#     on_success:
+#       put: slack
+#       params:
+#         channel: "#test-feeds"
+#         username: concourse
+#         icon_url: https://avatars2.githubusercontent.com/u/36465201?v=4&s=200
+#         text: "$BUILD_PIPELINE_NAME/$BUILD_JOB_NAME Passed ! <$ATC_EXTERNAL_URL:8080/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|  Click for details.>"
+#
+# - name: Deploy
+#   max_in_flight: 1
+#   plan:
+#   #- get: backend
+#   - get: SpringBootSample
+#     trigger: true
+#     passed: [Build Artifact]
+#   - task: build
+#     file: SpringBootSample/ci/java-deploy.yml
+#     input_mapping: {code-repo: SpringBootSample}
+#     on_success:
+#       put: slack
+#       params:
+#         channel: "#test-feeds"
+#         username: concourse
+#         icon_url: https://avatars2.githubusercontent.com/u/36465201?v=4&s=200
+#         text: "$BUILD_PIPELINE_NAME/$BUILD_JOB_NAME Passed ! <$ATC_EXTERNAL_URL:8080/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|  Click for details.>"
+#
+# - name: Smoke Test
+#   max_in_flight: 1
+#   plan:
+#   - get: SpringBootSample
+#     trigger: true
+#     passed: [Deploy]
+#   - task: smoke-test
+#     file: SpringBootSample/ci/functional-test.yml
+#     input_mapping: {code-repo: SpringBootSample}
+#     on_success:
+#       put: slack
+#       params:
+#         channel: "#test-feeds"
+#         username: concourse
+#         icon_url: https://avatars2.githubusercontent.com/u/36465201?v=4&s=200
+#         text: "$BUILD_PIPELINE_NAME/$BUILD_JOB_NAME Passed ! <$ATC_EXTERNAL_URL:8080/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|  Click for details.>"
+#
+# - name: Regression Test
+#   max_in_flight: 1
+#   plan:
+#   - get: SpringBootSample
+#     trigger: true
+#     passed: [Smoke Test]
+#   - task: regression-test
+#     file: SpringBootSample/ci/functional-test.yml
+#     input_mapping: {code-repo: SpringBootSample}
+#     on_success:
+#       put: slack
+#       params:
+#         channel: "#test-feeds"
+#         username: concourse
+#         icon_url: https://avatars2.githubusercontent.com/u/36465201?v=4&s=200
+#         text: "$BUILD_PIPELINE_NAME/$BUILD_JOB_NAME Passed ! <$ATC_EXTERNAL_URL:8080/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|  Click for details.>"

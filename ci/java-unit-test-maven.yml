@@ -1,0 +1,26 @@
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: maven
+    tag: 3.5.3-alpine
+
+inputs:
+# - name: SpringBootSample
+- name: code-repo
+
+#outputs:
+#- name: tests
+
+#run:
+#  dir: code-repo
+#  path: ../web-ui/ci/scripts/java-unit-test-maven.sh
+
+# run:
+#   path: sh
+#   args: ['./web-ui/ci/scripts/java-unit-test-maven.sh']
+
+run:
+  dir: code-repo
+  path: ./ci/scripts/java-unit-test-maven.sh
